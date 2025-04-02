@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\TransactionItemsResource\Pages\ListTransactionItems;
+use Filament\Tables\Actions\Action;
 
 class TransactionResource extends Resource
 {
@@ -65,30 +67,37 @@ class TransactionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('code')
+                ->label('Transaction Code')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')
+                ->label('Customer Name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('phone')
+                ->label('Phone Number')
+                    ->searchable(),
+                Tables\Columns\ImageColumn::make('barcodes.image')
+                    ->label('Barcode'),
+                Tables\Columns\TextColumn::make('payment_method')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('payment_status')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('external_id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('checkout_link')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('barcodes_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('payment_method')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('payment_status')
-                    ->searchable(),
+               
+              
                 Tables\Columns\TextColumn::make('subtotal')
                     ->numeric()
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('ppn')
                     ->numeric()
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total')
                     ->numeric()
+                    ->money('IDR')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -104,11 +113,18 @@ class TransactionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('Details')
+                ->color('success')
+                ->url(
+                        fn (Transaction $record): string=> static::getUrl('transaction-items.index',[
+                        'parent' => $record->id,  
+                        ])
+                    ),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 
@@ -125,6 +141,7 @@ class TransactionResource extends Resource
             'index' => Pages\ListTransactions::route('/'),
             'create' => Pages\CreateTransaction::route('/create'),
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
+            'transaction-items.index' => ListTransactionItems::route('/{record}/items'),
         ];
     }
 }
